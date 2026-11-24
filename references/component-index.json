@@ -1,0 +1,53 @@
+{
+  "purpose": "离线组件检索索引。用于普通任务链设计时快速选组件，不要求联网。字段详情和版本差异以用户提供的实际任务链结构优先。",
+  "schema_note": "components[].code 是本索引的检索标识，不保证等于任一版本 baseInfo.json 中的 component.code。实际编辑或映射导出文件时，必须使用该任务链导出中出现的真实 component.code、节点参数 key 和连接结构。",
+  "categories": [
+    "通用",
+    "控制",
+    "文本处理",
+    "文档处理",
+    "语言模型",
+    "文档索引",
+    "数据处理",
+    "输出显示"
+  ],
+  "components": [
+    {"code":"start-pass-through","name":"开始节点","category":"流程入口","when":"接收用户问题或任务链外部输入","inputs":["用户输入参数"],"outputs":["透传输入参数"],"notes":"先明确输入变量名、类型和是否允许为空。"},
+    {"code":"scriptV2","name":"脚本执行","category":"通用","when":"计算、字段映射、JSON处理、响应瘦身、轻量校验","inputs":["input","lang","code"],"outputs":["output","logs"],"notes":"入口通常为 execute(input)；输出是对象。不要把外部HTTP调用塞进脚本，优先使用接口调用组件。"},
+    {"code":"api-call","name":"接口调用","category":"通用","when":"调用外部HTTP服务","inputs":["url","method","header","query","body"],"outputs":["output"],"notes":"URL本体与query分开配置；响应通常是纯文本，后续需要字段时接JSON提取或脚本。"},
+    {"code":"send-email","name":"邮件发送","category":"通用","when":"发送任务结果或通知邮件","inputs":["title","to","cc","body","type","SMTP配置"],"outputs":["code"],"notes":"凭据不要硬编码到提示词或普通输出。"},
+    {"code":"condition","name":"条件组件","category":"控制","when":"按条件选择流程出口","inputs":["args","conditions"],"outputs":["分支出口"],"notes":"为每个出口写清条件和默认分支；语法以实际组件配置为准。"},
+    {"code":"foreach","name":"遍历组件","category":"控制","when":"对已有列表逐项执行同一子流程","inputs":["list","process","exceptionPolicy","扩展参数","间隔"],"outputs":["progress","list"],"notes":"列表项类型和子流程入参必须对齐。"},
+    {"code":"while","name":"循环组件","category":"控制","when":"将上一轮结果传给下一轮并按条件继续","inputs":["args","process","exceptionPolicy","condition","sleepTime"],"outputs":["progress","list","output"],"notes":"必须检查终止条件、边界和异常策略。"},
+    {"code":"text-template","name":"文本模板","category":"文本处理","when":"将变量按固定格式拼接成提示词或文本","inputs":["args","template","engine"],"outputs":["text"],"notes":"适合稳定模板，不负责复杂计算。"},
+    {"code":"text-process","name":"文本处理","category":"文本处理","when":"按长度、分隔符或篇章规则切分文本","inputs":["text","splitType","length","overlap"],"outputs":["list"],"notes":"切分后通常接遍历、知识入库或逐段模型处理。"},
+    {"code":"list-process","name":"列表处理","category":"文本处理","when":"取列表元素或合并多段文本","inputs":["list","index"],"outputs":["data"],"notes":"核对当前模式是取索引还是合并文本。"},
+    {"code":"code-parser","name":"代码解析","category":"文本处理","when":"从模型输出或文本中提取代码","inputs":["codeString"],"outputs":["code"],"notes":"适合把代码块从自然语言包装中剥离。"},
+    {"code":"json-extract","name":"JSON提取","category":"文本处理","when":"从JSON、代码块或不规整模型输出中提取字段","inputs":["jsonString"],"outputs":["动态result"],"notes":"提取前明确目标字段路径和缺失字段策略。"},
+    {"code":"extraction","name":"要素抽取","category":"文本处理","when":"按字段定义从文本抽取结构化要素","inputs":["text","schemaSource","要素定义","additionalInfo","模型参数"],"outputs":["text"],"notes":"优先使用明确的要素定义或schema。"},
+    {"code":"synonym-rewrite","name":"同义词改写","category":"文本处理","when":"在知识检索前扩展或规范化查询词","inputs":["query","libIdList"],"outputs":["rewrittenQuery","mappings"],"notes":"需要实际可用的同义词库。"},
+    {"code":"image-handle","name":"图片读取","category":"文档处理","when":"读取图片并转为Base64","inputs":["file"],"outputs":["base64"],"notes":"不要把Base64、文件对象和文件ID混作同一类型。"},
+    {"code":"doc-read","name":"文档获取","category":"文档处理","when":"读取文本、Markdown、Word、Excel、PDF等文档","inputs":["file","format","includeImages"],"outputs":["text"],"notes":"需要明确纯文本还是Markdown输出。"},
+    {"code":"doc-create","name":"文档生成","category":"文档处理","when":"从Markdown生成文档文件","inputs":["markdown","PPT主题"],"outputs":["file","url"],"notes":"下游节点需要文件对象还是下载链接要写清。"},
+    {"code":"excel-rw","name":"Excel读写","category":"文档处理","when":"按行、列或区域读取Excel","inputs":["file","type","startPosition","endPosition"],"outputs":["texts"],"notes":"坐标使用Excel格式；读取区域边界要明确。"},
+    {"code":"crawler","name":"网页爬虫","category":"文档处理","when":"抓取网页指定区域","inputs":["url","selectors"],"outputs":["results"],"notes":"结果是列表，后续使用前说明每项内容格式。"},
+    {"code":"spark-chat-template","name":"通用大模型","category":"语言模型","when":"生成、总结、分类、问答或推理","inputs":["domain","prompt/template","temperature","topK"],"outputs":["think","text"],"notes":"需要结构化结果时在提示词中定义格式，并用JSON提取或脚本校验。"},
+    {"code":"multimodal","name":"多模态组件","category":"语言模型","when":"基于图片和问题理解图像","inputs":["file","text"],"outputs":["result"],"notes":"图片必须符合平台支持的文件类型或文件ID格式。"},
+    {"code":"session-memory","name":"记忆组件","category":"语言模型","when":"读取当前任务链或智能体会话历史","inputs":["type","sessionId","rounds"],"outputs":["texts"],"notes":"明确会话类型和历史轮数，避免把长期记忆当会话记录。"},
+    {"code":"user-memory","name":"长期记忆","category":"语言模型","when":"按用户和查询召回长期记忆","inputs":["query","limit","userId"],"outputs":["memories"],"notes":"需要明确用户身份来源和无结果处理。"},
+    {"code":"doc-search-new","name":"知识检索","category":"文档索引","when":"从知识库召回相关片段","inputs":["text","dbNames","检索参数"],"outputs":["results","parts"],"notes":"召回结果通常要映射到大模型提示词；定义空召回分支。"},
+    {"code":"knowledge-manager","name":"知识库管理","category":"文档索引","when":"读取知识库文档、分类或版本","inputs":["知识库","版本","返回结构"],"outputs":["results"],"notes":"不是问答检索的替代品。"},
+    {"code":"graph-kb-qa","name":"图谱知识库","category":"文档索引","when":"基于实体和关系做图谱检索问答","inputs":["graphLibId","text","graphMode","graphLimit"],"outputs":["result","chunks","nodes","edges"],"notes":"按任务需要使用实体、关系或组合模式。"},
+    {"code":"mysql-query","name":"数据库查询","category":"数据处理","when":"对数据库执行SQL查询","inputs":["dbUri","user","password","dbName","sql"],"outputs":["results"],"notes":"凭据和SQL权限必须按平台安全配置处理。"},
+    {"code":"excel-query","name":"Excel表查询","category":"数据处理","when":"对Excel表执行SQL查询","inputs":["file","sql"],"outputs":["results"],"notes":"在SQL中使用平台约定的表名。"},
+    {"code":"html","name":"HTML组件","category":"输出显示","when":"用HTML模板组织自定义结果","inputs":["arg","template"],"outputs":["text"],"notes":"适合需要格式化展示的结果，不等同于纯文本模板。"},
+    {"code":"echarts","name":"ECharts图表","category":"输出显示","when":"将结构化数据可视化","inputs":["option"],"outputs":["text"],"notes":"先准备合法的ECharts option。"},
+    {"code":"type-writer","name":"打字机","category":"输出显示","when":"按速度流式呈现文本","inputs":["text","wordsCount","returnInterval"],"outputs":["text"],"notes":"适合最终展示层，不要把它当作数据处理节点。"}
+  ],
+  "runtime_policy": {
+    "default_source": "local",
+    "network_lookup": "only_when_missing_conflicting_or_explicitly_requested",
+    "priority": ["actual_taskchain_export", "local_component_knowledge", "official_docs_for_maintenance"],
+    "do_not_store": "将单个任务链的专有提示词、业务表名、地址、账号、密码写入通用组件知识"
+  }
+}
