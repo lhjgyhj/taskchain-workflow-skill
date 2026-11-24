@@ -9,10 +9,14 @@ from pathlib import Path
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="从指定脚本版本创建新的副本目录")
+    parser = argparse.ArgumentParser(description="仅在初始化或上一轮版本已固定后，从指定版本创建新副本；同一轮修改请继续使用当前副本")
     parser.add_argument("--script-dir", required=True, help="单个脚本的独立目录")
     parser.add_argument("--from", dest="source_name", required=True, help="明确指定来源目录名，例如 backup 或 v001")
+    parser.add_argument("--confirmed-new-round", action="store_true", help="确认这是初始化或已获用户确认的下一轮，而非当前轮的中间修改")
     args = parser.parse_args()
+
+    if not args.confirmed_new_round:
+        parser.error("创建版本前须确认属于初始化或已获用户确认的下一轮；当前轮中间修改不创建新版本")
 
     script_dir = Path(args.script_dir).expanduser().resolve()
     source = (script_dir / args.source_name).resolve()

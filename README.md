@@ -78,7 +78,7 @@ python scripts/inspect_taskchain.py --source "C:\任务\baseInfo.json" --output 
 python scripts/split_taskchain_scripts.py --source "C:\任务\baseInfo.json" --output-dir "C:\任务\code"
 
 # 从明确版本创建新的脚本副本
-python scripts/new_script_version.py --script-dir "C:\任务\code\脚本名称" --from backup
+python scripts/new_script_version.py --script-dir "C:\任务\code\脚本名称" --from backup --confirmed-new-round
 
 # 创建跑批任务目录
 python scripts/init_batch_task.py --path "C:\任务\跑批任务"

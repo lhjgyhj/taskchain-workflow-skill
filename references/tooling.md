@@ -35,10 +35,10 @@ python scripts/split_taskchain_scripts.py --source "C:\任务\baseInfo.json" --o
 ## 创建脚本新版本
 
 ```powershell
-python scripts/new_script_version.py --script-dir "C:\任务\code\脚本名称" --from v001
+python scripts/new_script_version.py --script-dir "C:\任务\code\脚本名称" --from v001 --confirmed-new-round
 ```
 
-`--from` 必须明确写出来源版本，例如 `backup`、`v001`。工具自动创建下一个不存在的 `vNNN` 目录，拒绝覆盖已有目录。
+`--from` 必须明确写出来源版本，例如 `backup`、`v001`。仅在初始化原版本或用户确认本轮全部需求完成、主动提出归档后的新轮次，才调用本工具创建版本；同一轮中的修改与阶段审批继续使用当前副本。工具不会自动判定用户是否已确认，调用前必须核实；拒绝覆盖已有目录。
 
 ## 创建跑批任务目录
 
@@ -46,7 +46,7 @@ python scripts/new_script_version.py --script-dir "C:\任务\code\脚本名称" 
 python scripts/init_batch_task.py --path "C:\任务\跑批任务"
 ```
 
-创建 `config/`、`result/`、`code/backup/`、`code/v001/` 和 `start.bat` 模板。它不会运行跑批脚本；真实脚本、入口参数和鉴权配置必须在需求确认后补齐。
+创建 `config/`、`result/`、`code/backup/`、`code/v001/` 和 `start.bat` 模板。它不会运行跑批脚本；须按确认的实际命令调整入口和配置。固定命令点击即跑，多个命令各建清楚命名的入口，仅每次变化的参数才提示输入。
 
 ## 清点跑批结果
 
